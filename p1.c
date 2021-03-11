@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
                amp,
                zcr);
 
-        //if the user has inputted an output file, results are typed
+        //if the user has inputted an output file, results are typed in
         if (argc == 3)
             fprintf(out_file, "%d\t%f\t%f\t%f\n", trm, pow, amp, zcr);
 

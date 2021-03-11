@@ -14,7 +14,7 @@ float compute_power(const float *x, unsigned int N)
     {
         power = power + x[i] * x[i]; //power = power + x[i]^2
     }
-    power = power / N;
+    power = power * (1.0 / N);
     //convert to dB
     power = 10 * log10(power);
     return power;
@@ -36,7 +36,7 @@ float compute_am(const float *x, unsigned int N)
         else
             amplitude = amplitude + x[i];
     }
-    amplitude = amplitude / N;
+    amplitude = amplitude * (1.0 / N);
     return amplitude;
 }
 
@@ -51,7 +51,7 @@ float compute_zcr(const float *x, unsigned int N, float fm)
     for (i = 1; i < N; i++)
     {
         //check if x went from a positive sample to a negative one and vice versa
-        if (x[i] > 0 && x[i - 1] < 0 || x[i] < 0 && x[i - 1] > 0)
+        if ((x[i - 1] * x[i] < 0))
             zcr = zcr + 1;
     }
     //obtain ratio
