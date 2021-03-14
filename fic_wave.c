@@ -35,7 +35,7 @@ FILE *abre_wave(const char *ficWave, float *fm, unsigned int *confOK)
 
     printf("****Audio properties****\nEncoding: %d\tNumber of channels: %d\tSampling frequency: %d\tBits/sample: %d\n************************\n", encoding, channels, fm_int, bits);
     //Display error if encoding isnt 16Lin or has more than 2 channels
-    if (bits != 16 || encoding != 1 || (channels != 1 ))
+    if (bits != 16 || encoding != 1 || (channels != 1))
     {
         *confOK = 0;
         return NULL;

@@ -5,6 +5,7 @@
 //Computes the power of x in dB using a hamming window
 //  x: input signal
 //  N: # of samples
+//  h_window: ==1 hamming window, else rectangle window
 float compute_power(const float *x, unsigned int N, unsigned int h_window)
 {
 
@@ -14,23 +15,20 @@ float compute_power(const float *x, unsigned int N, unsigned int h_window)
     float power_den = 0;
     float power = 0;
     int i = 0;
-    if (h_window == 1)
+    //set alpha
+    if (h_window == 1){
         alpha = 0.54;
-    else
+    }
+    else{
         alpha = 1;
-
+    }
     for (i = 0; i < N; i++)
     {
-        h_i = alpha + (1 - alpha) * cos((2 * M_PI / N) * i);
+        h_i = alpha + (1 - alpha) * cos((2 * M_PI / N) * i); //obtain i sample of hamming window
         power_num = power_num + (x[i] * h_i) * (x[i] * h_i); //(x[i]*h_i)^2
-        power_den = power_den + h_i * h_i;                   //h_i^2
+        power_den = power_den + h_i * h_i;                   //h_i^2; sums N if h_i==1 (alpha==1)
     }
     power = power_num / power_den;
-    /*for (i = 0; i < N; i++)
-    {
-        power = power + x[i] * x[i]; //power = power + x[i]^2
-    }
-    power = power * (1.0 / N);*/
     //convert to dB
     power = 10 * log10(power);
     return power;
