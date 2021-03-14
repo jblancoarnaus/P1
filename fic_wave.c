@@ -2,10 +2,10 @@
 #include "fic_wave.h"
 #include <errno.h>
 
-FILE *abre_wave(const char *ficWave, float *fm)
+FILE *abre_wave(const char *ficWave, float *fm, unsigned int *confOK)
 {
     FILE *fpWave;
-    char fm_str[10], temp[10];
+    unsigned char fm_str[10], temp[10];
     unsigned int fm_int, encoding, channels, bits;
     if ((fpWave = fopen(ficWave, "r")) == NULL)
         return NULL;
@@ -35,10 +35,10 @@ FILE *abre_wave(const char *ficWave, float *fm)
 
     printf("****Audio properties****\nEncoding: %d\tNumber of channels: %d\tSampling frequency: %d\tBits/sample: %d\n************************\n", encoding, channels, fm_int, bits);
     //Display error if encoding isnt 16Lin or has more than 2 channels
-    if (bits != 16 || encoding != 1 || (channels != 1 && channels != 2))
+    if (bits != 16 || encoding != 1 || (channels != 1 ))
     {
-        // errno="No PCM lineal 16 bits";
-        // return NULL;
+        *confOK = 0;
+        return NULL;
     }
     fseek(fpWave, 8, SEEK_CUR); //Set pointer to byte 44 (data)
     return fpWave;

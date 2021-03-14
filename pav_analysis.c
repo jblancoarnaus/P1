@@ -2,19 +2,35 @@
 #include "pav_analysis.h"
 #include <stdio.h>
 
-//Computes the power of x in dB
+//Computes the power of x in dB using a hamming window
 //  x: input signal
 //  N: # of samples
-float compute_power(const float *x, unsigned int N)
+float compute_power(const float *x, unsigned int N, unsigned int h_window)
 {
+
+    float alpha;   //hamming window alpha parameter. ==1 rectangular window
+    float h_i = 0; //i sample of the hamming window
+    float power_num = 0;
+    float power_den = 0;
     float power = 0;
     int i = 0;
+    if (h_window == 1)
+        alpha = 0.54;
+    else
+        alpha = 1;
 
     for (i = 0; i < N; i++)
     {
+        h_i = alpha + (1 - alpha) * cos((2 * M_PI / N) * i);
+        power_num = power_num + (x[i] * h_i) * (x[i] * h_i); //(x[i]*h_i)^2
+        power_den = power_den + h_i * h_i;                   //h_i^2
+    }
+    power = power_num / power_den;
+    /*for (i = 0; i < N; i++)
+    {
         power = power + x[i] * x[i]; //power = power + x[i]^2
     }
-    power = power * (1.0 / N);
+    power = power * (1.0 / N);*/
     //convert to dB
     power = 10 * log10(power);
     return power;

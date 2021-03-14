@@ -2,14 +2,18 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <math.h>
 #include "pav_analysis.h"
 #include "fic_wave.h"
 
 int main(int argc, char *argv[])
 {
-    float durTrm = 0.010;
+    float durTrm = 0.020;
+    float durDesp = 0.010;
     float fm;
-    int N;
+    int N, Ndesp;
+    unsigned int confOK = 1; //==1 if input file is encoded with PCM Lin16 and 1 channel, ==0 otherwise
+    unsigned int h_window = 0;  //==1 hamming window, else rectangular 
     int trm;
     float *x;
     short *buffer;
@@ -22,13 +26,20 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Empleo: %s inputfile [outputfile]\n", argv[0]);
         return -1;
     }
-    if ((fpWave = abre_wave(argv[1], &fm)) == NULL)
+    //We cant use errno to show an error caused by using the wrong audio settings (last if condition)
+    if (((fpWave = abre_wave(argv[1], &fm, &confOK)) == NULL) && confOK != 0)
     {
         fprintf(stderr, "Error al abrir %s (%s)\n", argv[1], strerror(errno));
         return -1;
     }
-    N = durTrm * fm;
+    else if (confOK == 0)
+    {
+        fprintf(stderr, "Error al procesar %s (Fichero ha de tener 1 canal y configuración Lin16)\n", argv[1]);
+        return -1;
+    }
 
+    N = durTrm * fm;
+    Ndesp = durDesp * fm * 2;
     //open input file
     if ((buffer = malloc(N * sizeof(*buffer))) == 0 ||
         (x = malloc(N * sizeof(*x))) == 0)
@@ -47,18 +58,22 @@ int main(int argc, char *argv[])
     while (lee_wave(buffer, sizeof(*buffer), N, fpWave) == N)
     {
         for (int n = 0; n < N; n++)
+        {
             x[n] = buffer[n] / (float)(1 << 15); //2^15
+        }
 
+        //move pointer N/2 positions backward (hamming window overlaps)
+        fseek(fpWave, (int)-Ndesp, SEEK_CUR);
+        printf("%d ", (int)-Ndesp);
+        printf("%d", (int)ftell(fpWave));
         //store results in variables
-        pow = compute_power(x, N);
+        pow = compute_power(x, N, h_window);
         amp = compute_am(x, N);
         zcr = compute_zcr(x, N, fm);
 
         //display on screen
         printf("trm: %d\tPower estimate: %f dB\tAmplitude: %f\tZCR: %f\n", trm, pow,
-               amp,
-               zcr);
-
+               amp, zcr);
         //if the user has inputted an output file, results are typed in
         if (argc == 3)
             fprintf(out_file, "%d\t%f\t%f\t%f\n", trm, pow, amp, zcr);
